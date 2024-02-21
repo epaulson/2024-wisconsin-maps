@@ -130,6 +130,8 @@ fetch('2022AssemblyMembers.geojson')
 
                         let district_2022 = e.target.feature.properties.District;
                         let district_evers = e.target.feature.properties.EversDistrict;
+
+                        document.getElementById('district').innerText = '2024 District: ' + district_evers;
                         
                         // Update the infobar
                         document.getElementById('member-name').textContent = feature.properties.Name;
@@ -189,7 +191,7 @@ fetch('2022AssemblyMembers.geojson')
 
         // Add a click event listener to the map to clear all fields
         map.on('click', function (e) {
-            L.DomEvent.stopPropagation(e);
+            //L.DomEvent.stopPropagation(e);
             if (!e.target.properties) {
                 if (currentMarker) {
                     currentMarker.setStyle({ color: currentMarker.properties.Party === 'Rep' ? 'red' : 'blue', fillOpacity: 0.5 });
