@@ -1,0 +1,127 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>2024 Wisconsin Assembly Maps - Gov Evers Version</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+     <!-- OpenGraph tags -->
+     <meta property="og:title" content="Compare GOP and Evers WI Assembly Maps" />
+     <meta property="og:description" content="A website to compare 2022 GOP and 2024 Evers WI Assembly Maps, by Erik Paulson" />
+     <meta property="og:image" content="2024-wimap-viewer.jpeg" />
+     <meta property="og:url" content="http://epaulson.github.io/2024-wisconsin-maps" />
+ 
+     <!-- Twitter Card tags -->
+     <meta name="twitter:card" content="summary_large_image">
+     <meta name="twitter:site" content="@erik_paulson">
+     <meta name="twitter:title" content="Compare GOP and Evers WI Assembly Maps">
+     <meta name="twitter:description" content="A website to compare 2022 GOP and 2024 Evers WI Assembly Maps, by Erik Paulson">
+     <meta name="twitter:image" content="2024-wimap-viewer.jpeg">
+    <style>
+
+        
+        #mapid {
+            height: 100%;
+            width: 100%;
+        }
+        #map-container {
+            height: calc(100vh - 120px); /* Adjust as needed */
+            width: 100%;
+        }
+        
+        #bottombar {
+            height: 120px; /* Adjust as needed */
+            /* Other styles... */
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+    <div id="mapid" style="position: relative;">
+        <div id="info" style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#infoModal">
+                About
+            </button>
+            <span id="district" class="badge badge-pill badge-light" style="font-size: 2em; margin-top: 10px; width: 220px; text-align: center;">2024 District</span>
+        </div>
+    </div>
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="infoModalLabel">Info</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>This map shows the 2024 Wisconsin Assembly distrcts, as proposed by Govenor Evers. 
+                        Each circle is a member of the 2023-2024 Wisconsin Assembly, using the address that they registered with when filing their campaign registrations. 
+                        If you click on a circle, you'll see information about that member, and you'll see in light orange the district that they represented under the GOP-drawn maps that were struck down by the Wisconsin Supreme Court.
+                        The district that they currently live in will also appear with a darker border and a darker fill so it's easier to compare their old district and new district.
+                        Note that in the new map, there may be multiple members in the same district, and some of the new districts may have no current members. 
+                    <p>Click anywhere outside of the district to clear the current selection.</p>
+                    </p>
+                    <p>
+                        The 2024 map was assembled by <a href="https://twitter.com/jdjmke" target="_blank">John D. Johnson</a> of the Marquette University Law School Lubar Center, and this site would not be possible without his work. 
+                        The 2022 districts were assembled by the Wisconsin Legislative Technology Services Bureau and are available at <a target="_blank" href="https://gis-ltsb.hub.arcgis.com/pages/download-data">from the LTSB GIS site</a>
+                    </p>
+                    <p>
+                        For a more in-depth analysis of the maps, see the <a target="_blank" href="https://www.wispolitics.com/2024-redistricting/">WisPolitics Redistricting Overview</a> which includes more of John D. Johnson's work.
+                    </p>
+                    <p>
+                    This site was created by <a href="https://twitter.com/erik_paulson" target="_blank">Erik Paulson</a> and the source code is available from <a target="_blank" href="https://github.com/epaulson/2024-wisconsin-maps">Github</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div id="bottombar" class="infobar" style="position: fixed; bottom: 0; width: 100%; background-color: #f8f9fa; display: flex; align-items: center; padding: 10px;">
+        <img src="" id="memberPhoto" style="max-height: 100px; margin-right: 20px;">
+        <div>
+            <span id="member-name" style="font-size: 1.5em;"></span>
+            <div>
+                <span id="member-district">2022 District: </span> | 
+                <span id="member-evers-district">Evers District: </span> 
+            </div>
+            <div>
+                <span id="member-party">Party: </span> | 
+                <span id="member-district">District: </span> |
+                <span id="member-year-elected">Year First Elected: </span> | 
+                <span id="member-age">Age: </span> | 
+                <span id="member-retirement-status">Retiring in 2024: </span>
+            </div>
+            <a id="member-wikipedia-link" target="_blank" href="https://en.wikipedia.org/">Wikipedia Page</a>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pbf@3.0.5/dist/pbf.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/geobuf@3.0.2/dist/geobuf.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Map</title>
+    <script src="https://cdn.jsdelivr.net/npm/pbf@3.0.5/dist/pbf.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/geobuf@3.0.2/dist/geobuf.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+
+</head>
+<body>
+    <div id="mapid" style="height: 100vh;"></div>
+    <script src="main.js"></script>
+</body>
+</html>
+
+-->
+
+
