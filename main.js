@@ -15,6 +15,7 @@ let defaultEversOpen = 'green';
 let defaultEversMultiple = 	'#FF3B58';
 let showOpenDistricts = false;
 let showMultiCandidateDistricts = false;
+let currentMarker = null;
 
 function computeEversColors(feature) {
     let computedColor = defaultEversColor;
@@ -113,10 +114,20 @@ fetch('2022AssemblyMembers.geojson')
                 layer.on({
                     click: function (e) {
                         // Store the properties for later use
-                        L.DomEvent.stopPropagation(e);
                         e.target.properties = feature.properties;
-                        //console.log("Fired at all");
-                        //console.log(e.target.properties);
+                        L.DomEvent.stopPropagation(e);
+
+                        if (currentMarker) {
+                            currentMarker.setStyle({ color: currentMarker.properties.Party === 'Rep' ? 'red' : 'blue', fillOpacity: 0.5 });
+                        }
+
+                                    // Change the style of the clicked marker
+                        let marker = e.target;
+                        marker.setStyle({ color: 'yellow', fillOpacity: 1 });
+
+                        // Store the clicked marker
+                        currentMarker = marker;
+
                         let district_2022 = e.target.feature.properties.District;
                         let district_evers = e.target.feature.properties.EversDistrict;
                         
@@ -151,7 +162,6 @@ fetch('2022AssemblyMembers.geojson')
                         });
                         eversDistrictsLayer.eachLayer(function(layer) {
                             if (layer.feature.properties.evers24_wsa == district_evers) {
-                                // Set the style of this feature to be visible and color its outline blaze orange
                                 layer.setStyle({
                                     fillOpacity: 0.3,
                                     weight: 9,
@@ -179,7 +189,12 @@ fetch('2022AssemblyMembers.geojson')
 
         // Add a click event listener to the map to clear all fields
         map.on('click', function (e) {
+            L.DomEvent.stopPropagation(e);
             if (!e.target.properties) {
+                if (currentMarker) {
+                    currentMarker.setStyle({ color: currentMarker.properties.Party === 'Rep' ? 'red' : 'blue', fillOpacity: 0.5 });
+                    currentMarker = null;
+                }
                 clearAllFields();
             }
         });
@@ -187,6 +202,7 @@ fetch('2022AssemblyMembers.geojson')
 }
 
 function clearAllFields() {
+    
     document.getElementById('member-name').textContent = '';
     document.getElementById('member-party').textContent = 'Party: ';
     document.getElementById('member-district').textContent = '2022 District: ';
@@ -196,7 +212,6 @@ function clearAllFields() {
     document.getElementById('member-retirement-status').textContent = 'Retiring in 2024: ';
     document.getElementById('member-wikipedia-link').href = 'https://en.wikipedia.org';
     document.getElementById('memberPhoto').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
     districtsLayer.eachLayer(function(layer) {
         layer.setStyle({
             opacity: 0,
@@ -205,5 +220,5 @@ function clearAllFields() {
     });
     eversDistrictsLayer.eachLayer(function(layer) {
         layer.setStyle(computeEversColors(layer.feature));
-    });
+    });  
 }
