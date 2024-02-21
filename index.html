@@ -22,7 +22,7 @@
      <meta name="twitter:image" content="2024-wimap-viewer.jpeg">
     <style>
 
-        
+
         #mapid {
             height: 100%;
             width: 100%;
@@ -55,8 +55,40 @@
                 About
             </button>
             <span id="district" class="badge badge-pill badge-light" style="font-size: 2em; margin-top: 10px; width: 220px; text-align: center;">2024 District</span>
+            <div class="text-right">
+                <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#optionsModal">
+                    Options
+                </button>
+            </div>
         </div>
     </div>
+    
+    <!-- Options Modal -->
+<div class="modal fade" id="optionsModal" tabindex="-1" role="dialog" aria-labelledby="optionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="optionsModalLabel">Options</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <input type="checkbox" id="showOpenDistricts" name="showOpenDistricts">
+                    <label for="showOpenDistricts">Show open districts (green)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="showMultiCandidateDistricts" name="showMultiCandidateDistricts">
+                    <label for="showMultiCandidateDistricts">Show districts with multiple candidates (red)</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -109,6 +141,7 @@
     </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pbf@3.0.5/dist/pbf.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/geobuf@3.0.2/dist/geobuf.js"></script>

@@ -10,8 +10,40 @@ L.tileLayer(
 ).addTo(map);
 
 let defaultFillOpacity = 0.0;
+let defaultEversColor = '#3388ff';
+let defaultEversOpen = 'green';
+let defaultEversMultiple = 	'#FF3B58';
+let showOpenDistricts = false;
+let showMultiCandidateDistricts = false;
+
+function computeEversColors(feature) {
+    let computedColor = defaultEversColor;
+    let computedOpacity = defaultFillOpacity;
+    if (showOpenDistricts) {
+        if (feature.properties.candidateCountTotal == 0) { computedColor = defaultEversOpen, computedOpacity = 0.3}
+    }
+    if(showMultiCandidateDistricts) {
+        if (feature.properties.candidateCountTotal > 1) { computedColor = defaultEversMultiple, computedOpacity = 0.3}
+    }
+    return { fillOpacity: computedOpacity, color: computedColor, weight: 3 };
+}
 setMapContainerHeight();
 window.addEventListener('resize', setMapContainerHeight);
+
+document.getElementById('showOpenDistricts').addEventListener('change', function() {
+    showOpenDistricts = this.checked;
+    clearAllFields();
+    // Invalidate the map to redraw it
+    map.invalidateSize();
+});
+
+document.getElementById('showMultiCandidateDistricts').addEventListener('change', function() {
+    showMultiCandidateDistricts = this.checked;
+    clearAllFields();
+    // Invalidate the map to redraw it
+    map.invalidateSize();
+});
+
 
 function setMapContainerHeight() {
     const bottombarHeight = document.getElementById('bottombar').offsetHeight;
@@ -27,9 +59,7 @@ fetch('evers24districts.pbf')
 
         // Add the data to the map
         eversDistrictsLayer = L.geoJSON(geojson, {
-            style: {
-                fillOpacity: defaultFillOpacity
-            },
+            style: computeEversColors,
             onEachFeature: function (feature, layer) {
                 layer.on({
                     mouseover: function (e) {
@@ -55,7 +85,7 @@ function add2022Districts() {
         districtsLayer = L.geoJSON(geojson, {
             style: {
                 color: '#FF6600', // blaze orange
-                weight: 2,
+                weight: 3,
                 opacity: 0,
                 fillOpacity: 0
             }
@@ -124,16 +154,14 @@ fetch('2022AssemblyMembers.geojson')
                                 // Set the style of this feature to be visible and color its outline blaze orange
                                 layer.setStyle({
                                     fillOpacity: 0.3,
-                                    weight: 9
+                                    weight: 9,
+                                    color: defaultEversColor
                                 });
                                 districtEversClicked = layer;
             
                             } else {
                                 // Set the style of other features to be invisible
-                                layer.setStyle({
-                                    fillOpacity: defaultFillOpacity,
-                                    weight: 3
-                                });
+                                layer.setStyle(computeEversColors(layer.feature));
                             }
                         });
                         // Create a new bounds object from the first layer's bounds
@@ -152,29 +180,30 @@ fetch('2022AssemblyMembers.geojson')
         // Add a click event listener to the map to clear all fields
         map.on('click', function (e) {
             if (!e.target.properties) {
-                document.getElementById('member-name').textContent = '';
-                document.getElementById('member-party').textContent = 'Party: ';
-                document.getElementById('member-district').textContent = '2022 District: ';
-                document.getElementById('member-evers-district').textContent = 'Evers District: '
-                document.getElementById('member-year-elected').textContent = 'Year First Elected: ';
-                document.getElementById('member-age').textContent = 'Age: ';
-                document.getElementById('member-retirement-status').textContent = 'Retiring in 2024: ';
-                document.getElementById('member-wikipedia-link').href = 'https://en.wikipedia.org';
-                document.getElementById('memberPhoto').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
-                districtsLayer.eachLayer(function(layer) {
-                    layer.setStyle({
-                        opacity: 0,
-                        fillOpacity: 0
-                    });
-                });
-                eversDistrictsLayer.eachLayer(function(layer) {
-                    layer.setStyle({
-                        fillOpacity: defaultFillOpacity,
-                        weight: 3
-                    });
-                });
+                clearAllFields();
             }
         });
+    });
+}
+
+function clearAllFields() {
+    document.getElementById('member-name').textContent = '';
+    document.getElementById('member-party').textContent = 'Party: ';
+    document.getElementById('member-district').textContent = '2022 District: ';
+    document.getElementById('member-evers-district').textContent = 'Evers District: '
+    document.getElementById('member-year-elected').textContent = 'Year First Elected: ';
+    document.getElementById('member-age').textContent = 'Age: ';
+    document.getElementById('member-retirement-status').textContent = 'Retiring in 2024: ';
+    document.getElementById('member-wikipedia-link').href = 'https://en.wikipedia.org';
+    document.getElementById('memberPhoto').src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+    districtsLayer.eachLayer(function(layer) {
+        layer.setStyle({
+            opacity: 0,
+            fillOpacity: 0
+        });
+    });
+    eversDistrictsLayer.eachLayer(function(layer) {
+        layer.setStyle(computeEversColors(layer.feature));
     });
 }
