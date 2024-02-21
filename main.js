@@ -9,6 +9,7 @@ L.tileLayer(
     }
 ).addTo(map);
 
+let defaultFillOpacity = 0.0;
 setMapContainerHeight();
 window.addEventListener('resize', setMapContainerHeight);
 
@@ -26,6 +27,9 @@ fetch('evers24districts.pbf')
 
         // Add the data to the map
         eversDistrictsLayer = L.geoJSON(geojson, {
+            style: {
+                fillOpacity: defaultFillOpacity
+            },
             onEachFeature: function (feature, layer) {
                 layer.on({
                     mouseover: function (e) {
@@ -120,13 +124,13 @@ fetch('2022AssemblyMembers.geojson')
                                 // Set the style of this feature to be visible and color its outline blaze orange
                                 layer.setStyle({
                                     fillOpacity: 0.3,
-                                    weight: 6
+                                    weight: 9
                                 });
             
                             } else {
                                 // Set the style of other features to be invisible
                                 layer.setStyle({
-                                    fillOpacity: 0.2,
+                                    fillOpacity: defaultFillOpacity,
                                     weight: 3
                                 });
                             }
@@ -157,7 +161,7 @@ fetch('2022AssemblyMembers.geojson')
                 });
                 eversDistrictsLayer.eachLayer(function(layer) {
                     layer.setStyle({
-                        fillOpacity: 0.2,
+                        fillOpacity: defaultFillOpacity,
                         weight: 3
                     });
                 });
