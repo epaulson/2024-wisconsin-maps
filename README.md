@@ -1,6 +1,8 @@
 # 2024-wisconsin-maps
 A quick experiment in visualizing the Wisconsin Assembly Maps, comparing the 2022 map that was struck down by the Wisconsin Supreme Court to the version proposed by Governor Evers and ultimately enacted into law. 
 
+See it in action at [https://epaulson.github.io/2024-wisconsin-maps/](https://epaulson.github.io/2024-wisconsin-maps/)
+
 ## Data
 
 The Original districts are from here: 
