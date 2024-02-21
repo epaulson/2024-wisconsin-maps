@@ -101,6 +101,7 @@ fetch('2022AssemblyMembers.geojson')
                         document.getElementById('member-wikipedia-link').href = feature.properties.WikipediaPage;
                         document.getElementById('memberPhoto').src = feature.properties.imageURL;
                         
+                        let district22clicked, districtEversClicked;
                         districtsLayer.eachLayer(function(layer) {
                             if (layer.feature.properties.ASM2021 == district_2022) {
                                 // Set the style of this feature to be visible and color its outline blaze orange
@@ -109,8 +110,7 @@ fetch('2022AssemblyMembers.geojson')
                                     fillOpacity: 0.3
                                 });
             
-                                // Zoom to the feature
-                                map.fitBounds(layer.getBounds());
+                                district22clicked = layer;
                             } else {
                                 // Set the style of other features to be invisible
                                 layer.setStyle({
@@ -126,6 +126,7 @@ fetch('2022AssemblyMembers.geojson')
                                     fillOpacity: 0.3,
                                     weight: 9
                                 });
+                                districtEversClicked = layer;
             
                             } else {
                                 // Set the style of other features to be invisible
@@ -135,6 +136,14 @@ fetch('2022AssemblyMembers.geojson')
                                 });
                             }
                         });
+                        // Create a new bounds object from the first layer's bounds
+                        let bounds = district22clicked.getBounds();
+
+                        // Extend the bounds to include the second layer's bounds
+                        bounds.extend(districtEversClicked.getBounds());
+
+                        // Fit the map to the combined bounds
+                        map.fitBounds(bounds);
                     }
                 });
             }
