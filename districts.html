@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Districts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { position:absolute; top:0; bottom:0; left:0; right:0; }
+        #districtSelect { 
+            position:absolute; 
+            top:10px; 
+            right:10px; 
+            z-index:1000; 
+            font-size: 1.2em; 
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <select id="districtSelect"></select>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/geobuf/dist/geobuf.js"></script>
+    <script src="https://unpkg.com/pbf/dist/pbf.js"></script>
+    <script>
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var districtSelect = document.getElementById('districtSelect');
+        for (var i = 1; i <= 99; i++) {
+            var option = document.createElement('option');
+            option.value = option.text = i;
+            districtSelect.add(option);
+        }
+
+        districtSelect.onchange = function() {
+            location.hash = this.value;
+            loadDistrict(this.value);
+        };
+
+        if (location.hash) {
+            districtSelect.value = location.hash.substr(1);
+            loadDistrict(districtSelect.value);
+        } else {
+            location.hash = 77;
+            districtSelect.value = 77;
+            loadDistrict('77');
+        }
+
+        var currentDistrictLayer;
+
+        function loadDistrict(district) {
+            fetch('evers24districts.pbf')
+                .then(response => response.arrayBuffer())
+                .then(buffer => {
+                    var geojson = geobuf.decode(new Pbf(buffer));
+                    var districtFeature = geojson.features.find(feature => feature.properties.evers24_wsa === district);
+                    if (districtFeature) {
+                        if (currentDistrictLayer) {
+                            map.removeLayer(currentDistrictLayer);
+                        }
+                        currentDistrictLayer = L.geoJSON(districtFeature, {
+                            style: { weight: 4, fillOpacity: 0.2 }
+                        }).addTo(map);
+                        map.fitBounds(currentDistrictLayer.getBounds());
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
