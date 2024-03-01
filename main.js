@@ -16,6 +16,7 @@ let defaultEversMultiple = 	'#FF3B58';
 let showOpenDistricts = false;
 let showMultiCandidateDistricts = false;
 let currentMarker = null;
+let showWards = false;
 
 function computeEversColors(feature) {
     let computedColor = defaultEversColor;
@@ -28,6 +29,13 @@ function computeEversColors(feature) {
     }
     return { fillOpacity: computedOpacity, color: computedColor, weight: 3 };
 }
+
+function computeWardStyle(matchType) {
+    return {
+        opacity: matchType === '2022_match' || matchType === '2024_match' ? 1.0 : 0.0
+    };
+}
+
 setMapContainerHeight();
 window.addEventListener('resize', setMapContainerHeight);
 
@@ -45,6 +53,16 @@ document.getElementById('showMultiCandidateDistricts').addEventListener('change'
     map.invalidateSize();
 });
 
+document.getElementById('showWards').addEventListener('change', (event) => {
+    showWards = event.target.checked;
+    if(showWards) {
+        wardsLayer.addTo(map);
+        wardsLayer.bringToBack();
+    } else {
+        map.removeLayer(wardsLayer);
+    }
+    map.invalidateSize();
+});
 
 function setMapContainerHeight() {
     const bottombarHeight = document.getElementById('bottombar').offsetHeight;
@@ -75,6 +93,185 @@ fetch('evers24districts.pbf')
         add2022Districts();
         
     });
+
+let wardsLayer;
+let wardsLoaded = false;
+
+let wards2022 = {};
+let wardsEvers = {};
+
+function add2022Wards() {
+    fetch('2022-wards.pbf')
+    .then(response => response.arrayBuffer())
+    .then(buffer => {
+        let geojson = geobuf.decode(new Pbf(buffer));
+    
+        // Add the data to the map as an invisible layer
+        wardsLayer = L.geoJSON(geojson, {
+            style: {
+                color: 'purple', // purple
+                weight: 3,
+                opacity: 0,
+                fillOpacity: 0
+            },
+            onEachFeature: function (feature, layer) {
+                let wardId = feature.properties.WARDJuly22;
+                let asm2021 = feature.properties.ASM2021;
+                let asm2024 = feature.properties.ASM2024;
+
+                // Add the ward ID to the wards2022 and wardsEvers indexes
+                if (!wards2022[asm2021]) {
+                    wards2022[asm2021] = [];
+                }
+                wards2022[asm2021].push(wardId);
+
+                if (!wardsEvers[asm2024]) {
+                    wardsEvers[asm2024] = [];
+                }
+                wardsEvers[asm2024].push(wardId);
+            }
+        })
+        //wardsLayer.bringToBack();
+
+        document.getElementById('showWards').disabled = false;
+        wardsLoaded = true;
+    });
+}
+
+function getWardCategory(wardId, asm2021, asm2024) {
+    let in2022 = wards2022[asm2021] && wards2022[asm2021].includes(wardId);
+    let inEvers = wardsEvers[asm2024] && wardsEvers[asm2024].includes(wardId);
+
+    if (in2022 && inEvers) {
+        return 'both';
+    } else if (in2022) {
+        return 'only2022';
+    } else if (inEvers) {
+        return 'onlyEvers';
+    } else {
+        return 'none';
+    }
+}
+
+function computeVotingInfo(asm2021, asm2024) {
+    let wards2022List = wards2022[asm2021] || [];
+    let wardsEversList = wardsEvers[asm2024] || [];
+
+    let votingInfo = {
+        only2022: { GOVREP22: 0, GOVDEM22: 0, USSREP22: 0, USSDEM22: 0 },
+        onlyEvers: { GOVREP22: 0, GOVDEM22: 0, USSREP22: 0, USSDEM22: 0 },
+        both: { GOVREP22: 0, GOVDEM22: 0, USSREP22: 0, USSDEM22: 0 },
+        commonPlusEvers: { GOVREP22: 0, GOVDEM22: 0, USSREP22: 0, USSDEM22: 0 },
+        commonPlus2022: { GOVREP22: 0, GOVDEM22: 0, USSREP22: 0, USSDEM22: 0 }
+    };
+
+    wardsLayer.eachLayer(function(layer) {
+        let wardId = layer.feature.properties.WARDJuly22;
+        let category = getWardCategory(wardId, asm2021, asm2024);
+        if (category !== 'none') {
+            ['GOVREP22', 'GOVDEM22', 'USSREP22', 'USSDEM22'].forEach(function(voteType) {
+                votingInfo[category][voteType] += layer.feature.properties[voteType];
+                if (category !== 'onlyEvers') {
+                    votingInfo['commonPlus2022'][voteType] += layer.feature.properties[voteType];
+                }
+                if (category !== 'only2022') {
+                    votingInfo['commonPlusEvers'][voteType] += layer.feature.properties[voteType];
+                }
+            });
+        }
+    });
+
+    // Compute percentages
+    ['only2022', 'onlyEvers', 'both', 'commonPlusEvers', 'commonPlus2022'].forEach(function(category) {
+        votingInfo[category]['GOVREP22Percent'] = (votingInfo[category]['GOVREP22'] / (votingInfo[category]['GOVREP22'] + votingInfo[category]['GOVDEM22']) * 100).toFixed(1);
+        votingInfo[category]['GOVDEM22Percent'] = (votingInfo[category]['GOVDEM22'] / (votingInfo[category]['GOVREP22'] + votingInfo[category]['GOVDEM22']) * 100).toFixed(1);
+        votingInfo[category]['USSREP22Percent'] = (votingInfo[category]['USSREP22'] / (votingInfo[category]['USSREP22'] + votingInfo[category]['USSDEM22']) * 100).toFixed(1);
+        votingInfo[category]['USSDEM22Percent'] = (votingInfo[category]['USSDEM22'] / (votingInfo[category]['USSREP22'] + votingInfo[category]['USSDEM22']) * 100).toFixed(1);
+    });
+
+    return votingInfo;
+}
+
+function formatVotingInfoAsHtml(votingInfo) {
+    // Define the keys for each row
+
+    // Define the column keys
+    var columnKeys = [
+        'only2022',
+        'both',
+        'onlyEvers',
+        'commonPlus2022',
+        'commonPlusEvers'
+    ];
+
+    // Start the table body
+    var tableBodyHtml = '';
+
+
+    tableBodyHtml += '<tr><td>Evers/<br>Michaels</td>';
+
+    // Loop through each column
+    for (var j = 0; j < columnKeys.length; j++) {
+        cellObj = votingInfo[columnKeys[j]]
+
+        
+        // Get the data for this cell
+        var cellData = cellObj['GOVDEM22'] + '/' + cellObj['GOVREP22'];
+        cellData += '<br>(' + cellObj['GOVDEM22Percent'] + '%/' + cellObj['GOVREP22Percent'] + '%)';
+
+        // Add the cell data to the row
+        tableBodyHtml += '<td>' + cellData + '</td>';
+    }
+
+    // End the row
+    tableBodyHtml += '</tr>';
+
+    tableBodyHtml += '<tr><td>Barnes/<br>Johnson</td>';
+        // Loop through each column
+        for (var j = 0; j < columnKeys.length; j++) {
+            cellObj = votingInfo[columnKeys[j]]
+
+            // Get the data for this cell
+            var cellData = cellObj['USSDEM22'] + '/' + cellObj['USSREP22'];
+            cellData += '<br>(' + cellObj['USSDEM22Percent'] + '%/' + cellObj['USSREP22Percent']+ '%)';
+    
+    
+            // Add the cell data to the row
+            tableBodyHtml += '<td>' + cellData + '</td>';
+        }
+    
+        // End the row
+        tableBodyHtml += '</tr>';
+    
+    // Replace the table body with the new HTML
+    document.querySelector('.table tbody').innerHTML = tableBodyHtml;
+}
+
+function clearTableBody() {
+    // Define the default table body HTML
+    var defaultTableBodyHtml = `
+        <tr>
+            <td>Evers/<br>Michaels</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Barnes/<br>Johnson</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    `;
+
+    // Replace the table body with the default HTML
+    document.querySelector('.table tbody').innerHTML = defaultTableBodyHtml;
+}
+
 let districtsLayer;
 function add2022Districts() {
     fetch('2022districts.pbf')
@@ -119,6 +316,7 @@ fetch('2022AssemblyMembers.geojson')
 
                         if (currentMarker) {
                             currentMarker.setStyle({ color: currentMarker.properties.Party === 'Rep' ? 'red' : 'blue', fillOpacity: 0.5 });
+                            clearTableBody();
                         }
 
                                     // Change the style of the clicked marker
@@ -176,6 +374,18 @@ fetch('2022AssemblyMembers.geojson')
                                 layer.setStyle(computeEversColors(layer.feature));
                             }
                         });
+
+                        if (wardsLoaded && showWards) {
+                            wardsLayer.eachLayer(function(layer) {
+                                if (layer.feature.properties.ASM2021 == district_2022) {
+                                    layer.setStyle(computeWardStyle('2022_match'));
+                                } else if (layer.feature.properties.ASM2024 == district_evers) {
+                                    layer.setStyle(computeWardStyle('2024_match'));
+                                } else {
+                                    layer.setStyle({ opacity: 0.0 });
+                                }
+                            });
+                        }
                         // Create a new bounds object from the first layer's bounds
                         let bounds = district22clicked.getBounds();
 
@@ -184,6 +394,11 @@ fetch('2022AssemblyMembers.geojson')
 
                         // Fit the map to the combined bounds
                         map.fitBounds(bounds);
+                        //console.log(computeVotingInfo(district_2022, district_evers));
+                        if(wardsLoaded) {
+                        votingInfo = computeVotingInfo(district_2022, district_evers);
+                        formatVotingInfoAsHtml(votingInfo);
+                        }
                     }
                 });
             }
@@ -222,5 +437,13 @@ function clearAllFields() {
     });
     eversDistrictsLayer.eachLayer(function(layer) {
         layer.setStyle(computeEversColors(layer.feature));
-    });  
+    });
+    if(wardsLoaded) {
+        wardsLayer.eachLayer(function(layer) {   
+           layer.setStyle({ opacity: 0.0 });
+        })
+    };
+    clearTableBody();
 }
+
+add2022Wards()

@@ -39,12 +39,22 @@ Because I was hacking this all together and iterating there's a little bit of a 
 Oops. 
 For now I'm ignoring it, that column is 2022AssemblyMembers-geocoded.xlsx isn't read by anything in geoanalysis.py so as long it exists and doesn't crash make-geojson.py isn't not a big deal to just run it a 2nd time. 
 
+The election results data came from the LTSB site, using the 2022 fall elections. 
+At the moment the LTSB has not published an actual map of which wards makes make up which districts so I put one together.
+You will need to download 2022_Election_Data_with_2022_Wards.geojson from the LTSB site, it is not included in this repo because it is a huge file.
+(Important terminology note: in Wisconsin, a ward is what most other places call a precinct, Wisconsin doesn't use have precincts. What other places call a ward Wisconsin calls a district - our city council members represent districts, not wards) 
+I am not looking for perfect legal accuracy and so as to not deal with slight imperfections in the different GIS files, I compute the centroid of the ward and use that for the spatial join, rather than using a spatial containment join with the polygons. 
+This works except for two places where the centroid winds up being out in Lake Superior or Lake Winnebago so those are manually repaired. 
+The workflow is in `evers24-wards.py` which takes the the 2024 district map and the 2022 election results and ward map and joins them and spits out 2022-processed-wards.geojson.
+There are a handful of issues with the ward data that I'm ignoring, mostly around new wards that have been created since 2022 because of annexation or wards that were created as placeholders and don't yet have any voters in them. 
+
 The last step is to convert the geojson district files into Geobuf. Geobuf is a binary file format for geojson that uses protobufs as the base format. 
 They're much smaller on the wire and parse much faster so they're better for performance. You can create the files using the [geobuf package](https://www.npmjs.com/package/geobuf) from NPM. 
 
 ```sh
 npx json2geobuf districts.geojson >evers24districts.pbf
 npx json2geobuf original22_wsa.geojson >2022districts.pbf
+npx json2geobuf 2022-processed-wards.geojson >2022-wards.pbf
 ```
 
 ## The website

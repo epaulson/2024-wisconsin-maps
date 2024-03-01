@@ -31,14 +31,28 @@
             width: 100%;
         }
         #map-container {
-            height: calc(100vh - 140px); /* Adjust as needed */
+            height: calc(100vh - 200px); /* Adjust as needed */
             width: 100%;
         }
         
         #bottombar {
-            height: 140px; /* Adjust as needed */
+            height: 200px; /* Adjust as needed */
             /* Other styles... */
         }
+
+
+        @media (max-width: 500px) {
+        .table th {
+            font-size: 0.8em; /* Adjust as needed */
+        }
+
+        .table tr {
+            font-size: 0.5em; /* Adjust as needed */
+        }
+        .table td {
+            padding: 0 0px;  /* top/bottom padding is 0, left/right padding is 5px */
+        }
+    }
     </style>
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y55SS6V8WZ"></script>
@@ -85,6 +99,10 @@
                     <input type="checkbox" id="showMultiCandidateDistricts" name="showMultiCandidateDistricts">
                     <label for="showMultiCandidateDistricts">Show districts with multiple candidates (red)</label>
                 </div>
+                <div>
+                    <input type="checkbox" id="showWards" name="showWards" disabled>
+                    <label for="showWards">Show the wards that make up a district when clicked</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -125,23 +143,69 @@
         </div>
     </div>
     </div>
-    <div id="bottombar" class="infobar" style="position: fixed; bottom: 0; width: 100%; background-color: #f8f9fa; display: flex; align-items: center; padding: 10px;">
-        <img src="" id="memberPhoto" style="max-height: 100px; margin-right: 20px;">
-        <div>
-            <span id="member-name" style="font-size: 1.5em;"></span>
-            <div>
-                <span id="member-district">2022 District: </span> | 
-                <span id="member-evers-district">Evers District: </span> 
+
+    <div id="bottombar" class="infobar carousel slide" data-interval="false" style="position: fixed; bottom: 0; width: 100%; background-color: #f8f9fa; padding: 10px;">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div style="display: flex; align-items: center;">
+                    <img src="" id="memberPhoto" style="max-height: 100px; margin-right: 20px;">
+                    <div>
+                        <!-- member information -->
+                        <span id="member-name" style="font-size: 1.5em;"></span>
+                        <div>
+                            <span id="member-district">2022 District: </span> | 
+                            <span id="member-evers-district">Evers District: </span> 
+                        </div>
+                        <div>
+                            <span id="member-party">Party: </span> | 
+                            <span id="member-year-elected">Year First Elected: </span> | 
+                            <span id="member-age">Age: </span> | 
+                            <span id="member-retirement-status">Retiring in 2024: </span>
+                        </div>
+                        <a id="member-wikipedia-link" target="_blank" href="https://en.wikipedia.org/">Wikipedia Page</a>
+                    </div>
+                </div>
             </div>
-            <div>
-                <span id="member-party">Party: </span> | 
-                <span id="member-year-elected">Year First Elected: </span> | 
-                <span id="member-age">Age: </span> | 
-                <span id="member-retirement-status">Retiring in 2024: </span>
+            <div class="carousel-item">
+                <!-- election data table -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Old wards only</th>
+                            <th scope="col">Overlap</th>
+                            <th scope="col">New wards only</th>
+                            <th scope="col">2022 Full</th>
+                            <th scope="col">Evers Full</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Evers/<br>Michaels</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Barnes/<br>Johnson</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <a id="member-wikipedia-link" target="_blank" href="https://en.wikipedia.org/">Wikipedia Page</a>
         </div>
+        <a class="carousel-control-next" href="#bottombar" role="button" data-slide="next" style="background-color: rgba(0,0,0,0.2);">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>    
     </div>
+
     <!---
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     -->
